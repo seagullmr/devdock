@@ -1,0 +1,54 @@
+version: "3"
+
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+
+services:
+    docker-in-docker:
+        image: docker:dind
+        privileged: true
+        volumes:
+            - ${APP_CODE_LOCAL_PATH}:${APP_CODE_CONTAINER_PATH}
+
+    nginx-v2:
+        build:
+            context: ./nginx
+        volumes:
+        - ${APP_CODE_LOCAL_PATH}:${APP_CODE_CONTAINER_PATH}${APP_CODE_CONTAINER_FLAG}
+        - ./logs/nginx/:/var/log/nginx
+        - ./nginx/sites/:/etc/nginx/sites-available
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ./nginx/ssl/:/etc/nginx/ssl
+        ports:
+            - "80:80"
+            - "443:443"
+        links:
+            - docker-in-docker
+        networks:
+            - frontend
+            - backend
+        depends_on:
+            - goblog
+
+    goblog:
+        restart: always
+        container_name: goblog.dev
+        build:
+            context: ./golang
+        volumes:
+            - ${APP_CODE_LOCAL_PATH}:${APP_CODE_CONTAINER_PATH}${APP_CODE_CONTAINER_FLAG}
+        expose:
+            - "8000:8000"
+        networks:
+            - backend
+            - frontend
+        links:
+            - docker-in-docker
+        stdin_open: true
+        tty: true
+        environment:
+            GOPROXY: https://goproxy.cn
+            TZ: Asia/Shanghai
