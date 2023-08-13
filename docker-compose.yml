@@ -33,6 +33,24 @@ services:
         depends_on:
             - goblog
 
+    mysql-v1:
+        build:
+            context: ./mysql
+            args:
+                - MYSQL_VERSION=latest
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=root
+        volumes:
+            - ./.devdock/data/mysql:/var/lib/mysql
+            - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+        ports:
+            - "3306:3306"
+        networks:
+            - backend
+
     goblog:
         restart: always
         container_name: goblog.dev

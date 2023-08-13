@@ -3,4 +3,4 @@
 nohup.out
 code/*
 logs/*
-data/*
+.devdock/*
